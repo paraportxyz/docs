@@ -1,0 +1,36 @@
+{
+  "name": "paraport-docs",
+  "version": "1.0.0",
+  "description": "Documentation for ParaPort – the embedded auto-teleport SDK for Polkadot",
+  "author": "ParaPort Team",
+  "license": "MIT",
+  "homepage": "https://github.com/exezbcz/paraport",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/exezbcz/paraport.git"
+  },
+  "keywords": [
+    "parachain",
+    "polkadot",
+    "xcm",
+    "sdk",
+    "documentation",
+    "auto-teleport",
+    "web3"
+  ],
+  "scripts": {
+    "dev": "nuxt dev --extends docus",
+    "build": "nuxt build --extends docus",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "docus": "latest",
+    "nuxt": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,111 @@
+/* Minimal Theme - Clean Documentation */
+
+:root {
+  --doc-primary: #374151;
+  --doc-secondary: #6b7280;
+  --doc-border: #e5e7eb;
+}
+
+/* Clean hero sections */
+.hero-section {
+  background: white;
+  color: black;
+  padding: 2rem 0;
+}
+
+/* Dark mode */
+.dark .hero-section {
+  background: rgb(15, 15, 15);
+  color: white;
+}
+
+/* Glowing effects for interactive elements */
+.chaotic-glow {
+  box-shadow: var(--chaotic-glow);
+  transition: box-shadow 0.3s ease;
+}
+
+.chaotic-glow:hover {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+}
+
+/* Custom button styles */
+.chaotic-btn {
+  background: var(--chaotic-gradient);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.chaotic-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--chaotic-glow);
+}
+
+/* Spinning logo animation */
+.chaotic-spin {
+  animation: spin 20s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Chaos-themed text effects */
+.chaotic-text {
+  background: var(--chaotic-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+/* Card hover effects */
+.chaotic-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.chaotic-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Degen-friendly dark mode enhancements */
+.dark .chaotic-bg {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+}
+
+/* Meme-first styling */
+.chaos-meme {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  transform: rotate(-2deg);
+  display: inline-block;
+}
+
+/* Feature grid animations */
+.feature-grid > * {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.feature-grid > *:nth-child(1) { animation-delay: 0.1s; }
+.feature-grid > *:nth-child(2) { animation-delay: 0.2s; }
+.feature-grid > *:nth-child(3) { animation-delay: 0.3s; }
+.feature-grid > *:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
