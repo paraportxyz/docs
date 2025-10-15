@@ -1,61 +1,72 @@
 ---
 title: 'Teleport Calculation System'
-description: 'Fee estimation, balance validation, and route analysis inside ParaPort'
+description: 'How ParaPort decides whether to teleport, how much to send, and which route to use'
 navigation: true
 ---
 
-## Purpose
+## Goals
 
-Reliable auto-teleporting starts with accurate math. ParaPort’s Teleport Calculation System determines how much value to move, where to source it from, and which fees to include so the final transaction succeeds on the first try.
+The calculation phase answers three questions before any transaction is signed:
 
-## Components
+1. Does the user already have enough transferable balance on the destination chain?
+2. If not, which origin chain can supply the shortfall?
+3. What gross amount must be teleported so the destination ends up with the requested net amount after fees?
 
-### Unified Fee Calculator
-- Aggregates expected fees on source and destination chains
-- Applies configurable buffers to absorb volatility
-- Accounts for existential deposit requirements and storage costs
+`ParaPortSDK` packages the answers into the session object it returns from `initSession`.
 
-### Quote Engine
-- Evaluates balances across all configured chains
-- Selects the fund source with greatest availability and lowest cost
-- Produces user-facing quotes describing amounts, chains, and estimated time
+## How quotes are produced
 
-### Balance Validation
-- Subscribes to live balance updates via Polkadot.js
-- Detects deltas mid-flow to adjust routes or pause execution
-- Prevents operations when balances fall below required thresholds
+`XCMBridge.getQuote()` encapsulates the decision tree. Given `{ address, chain: destination, asset, amount, teleportMode }` it performs the following steps:
 
-### Funds Detection & Subscription
-- Waits for expected funds to land before proceeding to downstream actions
-- Notifies the UI and hooks when teleports settle or time out
-- Emits sleep/wake signals for long-lived flows so you can manage UX states
+1. **Discover candidate chains** — `getRouteChains(destination, asset)` inspects Paraspell metadata to list chains where the asset is transferable. This is filtered against the chains enabled in your SDK config.
+2. **Read balances** — `BalanceService.getBalances` fetches transferable balances on each candidate chain. Polkadot addresses are re-encoded per chain SS58 format automatically.
+3. **Prioritise origin** — The destination balance is compared against the requested amount. If it already covers the need, the algorithm short-circuits and reports `funds.needed = false`. Otherwise it selects the origin chain with the highest transferable balance.
+4. **Estimate fees twice** — `getXcmFee` simulates the XCM call using `@paraspell/sdk`. The first simulation uses the requested amount; the second uses the provisional send amount to account for fee changes caused by the larger transfer.
+5. **Compute send amount** — `calculateTeleportAmount` applies the teleport mode:
+   - `expected`: send enough so `currentBalance + receivingAmount >= requested`.
+   - `only`: limit the send so fees + transfer stay under the provided amount.
+   - `exact`: send the exact amount.
+6. **Dry-run execution** — `query.dryRun()` validates the transfer can succeed (no weight limit failures, no asset routing issues). It also ensures the origin has enough transferable balance to cover the computed amount.
+7. **Return the quote** — The bridge packages the origin/destination pair, total fees, net receive amount, transfer amount, and execution metadata (required signatures, estimated time).
 
-## Developer Integration
+Quotes are collected from every registered bridge (only XCM today). `TeleportManager.selectBestQuote` picks the one with the lowest total fee, but you can inspect all alternatives via `session.quotes.available`.
+
+## Consuming the calculation results
 
 ```ts
-const quote = await paraport.quotes.create({
-  from: 'polkadotHub',
-  to: 'assetHub',
-  asset: 'DOT',
-  amount: '12.5'
+const session = await sdk.initSession({
+  address,
+  chain: Chains.AssetHubPolkadot,
+  asset: Assets.DOT,
+  amount: '15000000000',
 })
 
-if (!quote.available) {
-  throw new Error('Insufficient balance to cover teleport + fees')
+if (!session.funds.needed) {
+  console.log('Destination already funded')
+} else if (!session.funds.available) {
+  console.warn('No eligible origin chain holds enough transferable balance')
+} else {
+  const quote = session.quotes.selected
+  console.log('Send', quote?.total?.toString(), 'to receive', quote?.amount?.toString())
 }
-
-console.log('Estimated fees:', quote.fees.total)
 ```
 
-Quotes can be generated in advance to display teleport previews, cost breakdowns, or to trigger partial teleports before a user commits to the main action.
+Session fields you can rely on:
 
-## Failure Handling
+- `funds.needed` — `true` when the destination is below the requested amount.
+- `funds.available` — `true` when at least one bridge could produce a quote.
+- `funds.noFundsAtAll` — `true` when every candidate origin lacks sufficient transferable balance.
+- `quotes.available` — All quotes returned by the enabled bridges.
+- `quotes.selected` — The quote ParaPort plans to execute (best by fee).
+- `quotes.bestQuote` — Alias of `quotes.selected` for backwards compatibility.
 
-- **Insufficient Funds** — Provide actionable messaging and optional partial fills.
-- **Stale Quotes** — Automatic refresh when fee conditions change beyond tolerance thresholds.
-- **Volatility Events** — Re-route or prompt users if RPC latency or fee spikes compromise the plan.
+The Vue composable exposes the same information via computed refs (`needsAutoTeleport`, `hasNoFundsAtAll`, `session.quotes.selected`, …) so your UI can tailor messaging.
 
-The Teleport Calculation System ensures ParaPort teleports are predictable, transparent, and resilient against market variance.
+## Watching for balance changes
+
+Even after a session is created, balances can change if users self-fund from another wallet or receive tokens from someone else. `BalanceService.subscribeBalances` listens for increases on both origin and destination chains. When a subscription fires, `calculateTeleport` re-runs and the session is patched with the latest quote and fund flags.
+
+For long waits (e.g., teleport pending confirmation), `BalanceService.waitForFunds` uses `p-retry` to poll until the destination has enough transferable balance, at which point the teleport completes and the session transitions to `completed`.
 
 ::u-button
 ---

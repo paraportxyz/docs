@@ -1,71 +1,162 @@
 ---
 title: 'Start Here'
-description: 'Integrate ParaPort auto-teleport into your Polkadot dApp'
+description: 'Integrate ParaPort auto-teleport flows in a few steps'
 navigation: true
 ---
 
-## Quick Start for Builders
+ParaPort ships as a set of TypeScript packages that share the same core SDK. This page walks through the minimum you need to embed the auto-teleport flow.
 
-### 1. Install the SDK
+## 1. Install the packages
 
-ParaPort ships as framework-specific packages that share a TypeScript core. Install the package that matches your stack:
+Pick the wrapper that matches your stack—all of them depend on the shared core.
 
 ```bash
-npm install @paraport/core @paraport/vue      # Vue 3
-npm install @paraport/core @paraport/react    # React 18+
+# Vanilla / framework-agnostic bundle
+pnpm add @paraport/sdk @paraport/core @paraport/static polkadot-api
+
+# Vue 3 applications
+pnpm add @paraport/vue @paraport/core @paraport/static polkadot-api
+
+# React 18+
+pnpm add @paraport/react @paraport/sdk @paraport/core @paraport/static polkadot-api
 ```
 
-The core package exposes shared services, while the UI package provides drop-in components and hooks.
+`polkadot-api` is a peer dependency; ParaPort uses it for signing and typed RPC access.
 
-### 2. Configure Supported Networks
+## 2. Provide a signer backed by polkadot-api
 
-Initialize ParaPort with the parachains and assets you want to support. Configuration files for Polkadot Hub, AssetHub, Hydration, and People chain are available in `packages/statick`.
+ParaPort only requires a single wallet signature per teleport. In browser contexts you can reuse injected extensions through the `polkadot-api/pjs-signer` helper:
 
 ```ts
-import { createParaPort } from '@paraport/core'
-import { hydration, assetHub, polkadotHub } from '@paraport/statick'
+import { connectInjectedExtension } from 'polkadot-api/pjs-signer'
 
-export const paraport = createParaPort({
-  chains: [polkadotHub, assetHub, hydration],
-  defaultAsset: 'DOT',
-  telemetry: true
-})
+export const getSigner = async () => {
+  const extension = await connectInjectedExtension('talisman', 'ParaPort Demo')
+  const account = extension.getAccounts()[0]
+  return account.polkadotSigner
+}
 ```
 
-### 3. Embed the UI Flow
+Server-side or custodial flows can return any `PolkadotSigner` that satisfies the same interface.
 
-Drop the pre-built modal or inline flow into your dApp. ParaPort handles intent detection, teleport execution, and transaction bundling.
+## 3. Mount the SDK (vanilla)
+
+The framework-agnostic bundle renders the Vue UI under the hood. You only need a target element, teleport parameters, and callbacks.
+
+```ts
+import '@paraport/sdk/style'
+import * as paraport from '@paraport/sdk'
+import { Assets, Chains } from '@paraport/static'
+import { getSigner } from './signer'
+
+const instance = paraport.init({
+  integratedTargetId: 'paraport-root',
+  address: '15...user',
+  amount: '10000000000', // 1 DOT in planck
+  chain: Chains.AssetHubPolkadot,
+  asset: Assets.DOT,
+  getSigner,
+  logLevel: 'DEBUG',
+  label: 'Mint',
+  endpoints: {
+    AssetHubPolkadot: ['wss://statemint.api.onfinality.io/public-ws'],
+  },
+  onReady(session) {
+    console.info('session ready', session.status, session.quotes.selected)
+  },
+  onSubmit(payload) {
+    console.info('submit clicked', payload)
+  },
+  onCompleted() {
+    console.info('teleport completed')
+  },
+  onAddFunds() {
+    console.info('user asked for manual top-up')
+  },
+})
+
+// Optional: update or tear down later
+instance.update({ label: 'Processing…', disabled: true })
+// instance.destroy()
+```
+
+Parameters mirror the `TeleportParams<string>` type from `@paraport/core`—all numeric values are passed as strings, and ParaPort converts them to `bigint` internally.
+
+## 4. Use the framework wrappers when you prefer idiomatic integration
+
+### Vue 3
+
+```ts
+// main.ts
+import { createApp } from 'vue'
+import App from './App.vue'
+import { ParaportPlugin } from '@paraport/vue'
+
+createApp(App)
+  .use(ParaportPlugin)
+  .mount('#app')
+```
+
+```vue
+<!-- Any component -->
+<template>
+  <Paraport
+    chain="AssetHubPolkadot"
+    asset="DOT"
+    :amount="amount"
+    :address="address"
+    :getSigner="getSigner"
+    label="Mint"
+    @ready="onReady"
+    @submit="onSubmit"
+    @completed="onCompleted"
+    @add-funds="onAddFunds"
+  />
+</template>
+```
+
+### React
 
 ```tsx
-import { TeleportFlow } from '@paraport/react'
+import { useMemo } from 'react'
+import Paraport from '@paraport/react'
+import { getSigner } from './signer'
 
-<TeleportFlow
-  client={paraport}
-  intent={{
-    action: 'mint',
-    chain: 'assetHub',
-    params: { collectionId: '999', price: '12.5' }
-  }}
-/>
+export function TeleportButton({ address }: { address: string }) {
+  const signer = useMemo(() => getSigner, [])
+
+  return (
+    <Paraport
+      address={address}
+      chain="AssetHubPolkadot"
+      asset="DOT"
+      amount="10000000000"
+      getSigner={signer}
+      label="Mint"
+      onReady={(session) => console.log(session)}
+    />
+  )
+}
 ```
 
-### 4. Test End-to-End
+Both wrappers forward props directly to the underlying SDK and expose the same events as DOM props/emits.
 
-Use the provided testing guidelines to simulate partial teleports, endpoint degradation, and signature failures. ParaPort ships with mocks and contract fixtures to help you validate flows before production launches.
+## Configuration reference
 
-::u-callout{icon="i-lucide-info"}
-ParaPort only requires wallet signatures—no additional custody or key management. When teleport capacity is insufficient, users receive guided recovery steps instead of silent failures.
-::
+| Field | Required | Description |
+| --- | --- | --- |
+| `address` | ✅ | User account encoded as SS58 (ParaPort re-encodes per chain). |
+| `chain` | ✅ | Destination parachain (`AssetHubPolkadot`, `Polkadot`, `Kusama`, `AssetHubKusama`, `Hydration`). |
+| `asset` | ✅ | Currently `DOT`, `KSM`, or `HDX`. |
+| `amount` | ✅ | Planck-denominated string. ParaPort converts to `bigint`. |
+| `getSigner` | ✅ | Async function returning a `PolkadotSigner`. |
+| `teleportMode` | optional | `'expected'` (default), `'exact'`, or `'only'`. |
+| `endpoints` | optional | Override RPC endpoints per chain. Falls back to generated defaults in `@paraport/static`. |
+| `label`, `disabled`, `appearance`, `themeMode` | optional | UI controls exposed by the Vue component. |
 
-## What You Get Out of the Box
+ParaPort defaults to the chains defined in `SDKConfigManager.getDefaultConfig()`. To narrow support, pass your own `chains` list when instantiating `ParaPortSDK` directly.
 
-- **Intent detection** that triggers teleports before business logic executes
-- **Unified balance view** across configured parachains
-- **Automatic fee estimation** with configurable safety margins
-- **Wallet-agnostic signing** that works with Talisman, SubWallet, Nova, and Ledger
-- **Observability hooks** for logging, metrics, and session replay
-
-Ready to explore the architecture and SDK layers in detail?
+Ready to understand how the pieces fit together internally?
 
 ::u-button
 ---
@@ -73,5 +164,5 @@ to: /start-here/where-we-are-built
 color: primary
 class: chaotic-btn
 ---
-Understand the Architecture
+Explore the Architecture
 ::
