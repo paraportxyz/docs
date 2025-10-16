@@ -1,71 +1,50 @@
 ---
 title: 'Start Here'
-description: 'Integrate ParaPort auto-teleport into your Polkadot dApp'
+description: 'Choose your stack to integrate ParaPort quickly'
 navigation: true
 ---
 
-## Quick Start for Builders
+ParaPort ships as a set of TypeScript packages that share a common core SDK. Pick the guide that matches your stack to get started fast.
 
-### 1. Install the SDK
-
-ParaPort ships as framework-specific packages that share a TypeScript core. Install the package that matches your stack:
-
-```bash
-npm install @paraport/core @paraport/vue      # Vue 3
-npm install @paraport/core @paraport/react    # React 18+
-```
-
-The core package exposes shared services, while the UI package provides drop-in components and hooks.
-
-### 2. Configure Supported Networks
-
-Initialize ParaPort with the parachains and assets you want to support. Configuration files for Polkadot Hub, AssetHub, Hydration, and People chain are available in `packages/statick`.
-
-```ts
-import { createParaPort } from '@paraport/core'
-import { hydration, assetHub, polkadotHub } from '@paraport/statick'
-
-export const paraport = createParaPort({
-  chains: [polkadotHub, assetHub, hydration],
-  defaultAsset: 'DOT',
-  telemetry: true
-})
-```
-
-### 3. Embed the UI Flow
-
-Drop the pre-built modal or inline flow into your dApp. ParaPort handles intent detection, teleport execution, and transaction bundling.
-
-```tsx
-import { TeleportFlow } from '@paraport/react'
-
-<TeleportFlow
-  client={paraport}
-  intent={{
-    action: 'mint',
-    chain: 'assetHub',
-    params: { collectionId: '999', price: '12.5' }
-  }}
-/>
-```
-
-### 4. Test End-to-End
-
-Use the provided testing guidelines to simulate partial teleports, endpoint degradation, and signature failures. ParaPort ships with mocks and contract fixtures to help you validate flows before production launches.
-
-::u-callout{icon="i-lucide-info"}
-ParaPort only requires wallet signatures—no additional custody or key management. When teleport capacity is insufficient, users receive guided recovery steps instead of silent failures.
+::u-button
+---
+to: /start-here/framework/vanilla
+color: primary
+class: chaotic-btn
+---
+Vanilla (No Framework)
 ::
 
-## What You Get Out of the Box
+::u-button
+---
+to: /start-here/framework/vue-3
+color: primary
+class: chaotic-btn
+---
+Vue 3
+::
 
-- **Intent detection** that triggers teleports before business logic executes
-- **Unified balance view** across configured parachains
-- **Automatic fee estimation** with configurable safety margins
-- **Wallet-agnostic signing** that works with Talisman, SubWallet, Nova, and Ledger
-- **Observability hooks** for logging, metrics, and session replay
+::u-button
+---
+to: /start-here/framework/react
+color: primary
+class: chaotic-btn
+---
+React
+::
 
-Ready to explore the architecture and SDK layers in detail?
+Need field details and options?
+
+::u-button
+---
+to: /start-here/configuration/parameters
+variant: outline
+class: chaotic-btn
+---
+Configuration Reference
+::
+
+Prefer to understand the moving pieces first?
 
 ::u-button
 ---
@@ -73,5 +52,5 @@ to: /start-here/where-we-are-built
 color: primary
 class: chaotic-btn
 ---
-Understand the Architecture
+Explore the Architecture
 ::

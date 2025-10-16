@@ -1,51 +1,50 @@
 ---
 title: 'Integration Onboarding'
-description: 'Step-by-step guide for teams adopting ParaPort in their Polkadot applications'
+description: 'Step-by-step guide for teams adopting ParaPort auto-teleport flows'
 navigation: true
 ---
 
-Welcome to ParaPort! This guide walks teams through partnership setup, development readiness, and production launch for auto-teleport experiences.
+Welcome to ParaPort! This checklist helps teams move from discovery to production with confidence.
 
-## Engagement Path
+## Engagement path
 
-### 1. Share Your Use Case
-- Describe the user action you want to streamline (minting, staking, voting, swaps, etc.)
-- List the parachains and assets involved today and in the near term
-- Identify expected transaction volume and UX constraints (mobile, custodial wallets, etc.)
+### 1. Share your use case
+- Which user action needs automatic funding (mint, stake, swap, NFT purchase, etc.)?
+- Which parachains and assets are involved today, and which are on the roadmap?
+- What constraints do you have (mobile-first wallets, custodial signers, regional RPC requirements)?
 
-### 2. Kickoff with the ParaPort Team
-- Schedule a discovery call via [pulcondrej@gmail.com](mailto:pulcondrej@gmail.com)
-- Align on milestones, environments, and integration owners
-- Gain access to statics configuration templates and example projects
+### 2. Kickoff with the ParaPort team
+- Schedule a discovery call via [pulcondrej@gmail.com](mailto:pulcondrej@gmail.com).
+- Align on milestones, test environments, and success metrics.
+- Review `@paraport/static` to confirm the required chains are supported or plan additions.
 
-### 3. Implement & Test
-- Install the SDK packages and configure supported networks
-- Integrate the TeleportFlow modal or headless hooks into your UI
-- Use the testing guidelines to simulate partial teleports, network degradation, and user cancellations
-- Review observability hooks to ensure logs and metrics ship to your stack
+### 3. Implement & test
+- Install the relevant packages (`@paraport/sdk`, `@paraport/vue`, or `@paraport/react`) plus `@paraport/core`, `@paraport/static`, and `polkadot-api`.
+- Wire the `<Paraport>` component or the SDK bundle into your UI and connect a `getSigner` implementation.
+- Exercise the flow on each target chain: verify `funds` flags, quote selection, `teleport:completed`, and the manual `Add funds` path.
+- Capture logs produced by `LoggerService` in your observability stack for debugging and support.
 
-### 4. Launch Checklist
-- ✅ Teleport quotes validated against current network fees
-- ✅ Wallets tested: Talisman, SubWallet, Nova, Ledger
-- ✅ Recovery paths documented for support teams
-- ✅ CI workflows covering linting, type checks, and e2e tests
+### 4. Launch checklist
+- ✅ Confirm telemetry: successful teleport hashes resolve in the expected block explorer.
+- ✅ Validate fee calculations against live network conditions for each chain pair you support.
+- ✅ Test wallet coverage (SubWallet, Talisman, Nova, Ledger via polkadot-api signer bridge). Document fallbacks if a signer is unavailable.
+- ✅ Include UI copy and support playbooks for `funds.noFundsAtAll` scenarios.
 
-## Support Channels
+## Support channels
 
 - **Email:** [pulcondrej@gmail.com](mailto:pulcondrej@gmail.com)
 - **GitHub Issues:** [exezbcz/paraport](https://github.com/exezbcz/paraport/issues)
-- **Advisory:** Viki Val (KodaDot co-founder) available for ecosystem alignment and product feedback
+- **Community:** Reach out to KodaDot contributors (e.g., Viki Val) for ecosystem context and best practices.
 
-## Training & Resources
+## Training & resources
 
-- Architecture deep dives upon request
-- Design files for UI components and states (Figma export forthcoming)
-- Workshop sessions for onboarding developer teams and QA engineers
-- Documentation updates driven by community pull requests (see `CONTRIBUTING.md`)
+- Architecture walkthroughs of `ParaPortSDK`, `TeleportManager`, and balance monitoring.
+- Example integrations in `apps/playground` for React and Vue, including signer wiring.
+- Contribution guidelines (`docs/CONTRIBUTING.md`) if you want to document new chains or enhance the UI.
 
-## Launch with Confidence
+## Launch with confidence
 
-ParaPort is built as a public good—your feedback shapes the roadmap. Whether you need single-hop DOT teleports today or multi-hop yield strategies tomorrow, the SDK is ready to evolve with you.
+ParaPort is an open, community-driven project. Share feedback, propose features, and help grow the cross-chain UX tooling the ecosystem needs.
 
 ::u-button
 ---
