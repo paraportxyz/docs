@@ -17,7 +17,7 @@ export default defineNuxtConfig({
           {
             binding: 'DB',
             database_name: 'paraport-docus',
-            database_id: 'f8bee687-8d89-4521-a415-cb04bf1e2208'
+            database_id: '6b0c554b-9076-4e84-a626-54e1f6b01179'
           }
         ]
       }
