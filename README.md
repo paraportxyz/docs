@@ -20,8 +20,8 @@ ParaPort detects when users need assets on other parachains and automatically te
 
 ```bash
 # Clone the documentation workspace
-git clone https://github.com/exezbcz/paraport
-cd paraport/docs
+git clone https://github.com/paraportxyz/docs paraport-docs
+cd paraport-docs
 
 # Install dependencies
 npm install
@@ -30,7 +30,7 @@ npm install
 npm run dev
 ```
 
-The site runs at `http://localhost:3001`.
+The site runs at `http://localhost:3000`.
 
 ## 📁 Project Structure
 
@@ -50,7 +50,7 @@ paraport-docs/
 
 ## 🛠 Built With
 
-- [Docus v4](https://docus.dev)
+- [Docus v5](https://docus.dev)
 - [Nuxt 4](https://nuxt.com)
 - [Nuxt Content](https://content.nuxt.com/)
 - [Nuxt UI Pro](https://ui.nuxt.com/pro)
