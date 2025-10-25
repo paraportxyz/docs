@@ -1,3 +1,5 @@
+// import { defineAppConfig } from 'nuxt/config'
+
 export default defineAppConfig({
   socials: {
     x: 'https://x.com/kodadot',

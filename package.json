@@ -4,10 +4,10 @@
   "description": "Documentation for ParaPort – the embedded auto-teleport SDK for Polkadot",
   "author": "ParaPort Team",
   "license": "MIT",
-  "homepage": "https://github.com/exezbcz/paraport",
+  "homepage": "https://github.com/paraportxyz/docs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/exezbcz/paraport.git"
+    "url": "https://github.com/paraportxyz/docs.git"
   },
   "keywords": [
     "parachain",
@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "better-sqlite3": "^12.4.1",
-    "docus": "latest",
-    "nuxt": "^4.1.2"
+    "docus": "5.2.1",
+    "nuxt": "^4.2.0"
   },
   "engines": {
     "node": ">=18.0.0",
